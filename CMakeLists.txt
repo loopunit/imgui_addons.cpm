@@ -27,7 +27,7 @@ CPMAddPackage(
 CPMAddPackage(
 	NAME imgui_cpm
 	GITHUB_REPOSITORY loopunit/imgui.cpm
-	GIT_TAG 5e2f8e50dd6825f508c74565443fb5fccc7feaa6
+	GIT_TAG e4f17521b4b170519690b03b455cfa4dca8b7908
 	OPTIONS
 		"IMGUI_BUILD_EXAMPLES ${IMGUI_BUILD_EXAMPLES}"
 		"IMGUI_BUILD_APP_FW ${IMGUI_BUILD_APP_FW}"
@@ -212,5 +212,5 @@ if(IMGUI_BUILD_ADDON_EXAMPLES)
     
     target_link_libraries(imgui_addons_example
         PUBLIC
-            imgui_app imgui_addons)
+            imgui_app_fw imgui_addons)
 endif()
