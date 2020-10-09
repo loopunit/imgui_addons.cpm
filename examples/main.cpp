@@ -30,9 +30,9 @@ inline ImGui::MarkdownImageData ImageCallback( ImGui::MarkdownLinkCallbackData d
 // Main code
 int main(int, char**)
 {
-    if (imgui_app::select_platform(imgui_app::platform::win32_dx12))
+    if (imgui_app_fw::select_platform(imgui_app_fw::platform::win32_dx12))
     {
-	    if (imgui_app::init())
+	    if (imgui_app_fw::init())
         {
             auto plotContext = ImPlot::CreateContext();
             imnodes::Initialize();
@@ -149,9 +149,9 @@ You can add [links like this one to enkisoftware](https://www.enkisoftware.com/)
   * Lists can have [links like this one to Avoyd](https://www.avoyd.com/)
 )";
 
-			while (imgui_app::pump())
+			while (imgui_app_fw::pump())
             {
-		        imgui_app::begin_frame();
+		        imgui_app_fw::begin_frame();
 
                 ImPlot::SetCurrentContext(plotContext);
 		
@@ -436,12 +436,12 @@ You can add [links like this one to enkisoftware](https://www.enkisoftware.com/)
 					ImGui::End();
 				}
 
-                imgui_app::end_frame(clear_color);
+                imgui_app_fw::end_frame(clear_color);
             }
 
             imnodes::Shutdown();
             ImPlot::DestroyContext(plotContext);
-	        imgui_app::destroy();
+	        imgui_app_fw::destroy();
         }
     }
 
