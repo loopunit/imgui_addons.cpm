@@ -165,6 +165,10 @@ file(COPY
 	DESTINATION ${STAGING_ROOT}/include)
 
 file(COPY 
+	${CMAKE_CURRENT_LIST_DIR}/format.h
+	DESTINATION ${STAGING_ROOT}/include/fmt)
+
+file(COPY 
 	${implot_source}
 	${ImGuiColorTextEdit_source}
 	${imnodes_source}
