@@ -4,110 +4,120 @@
 #include <TextEditor.h>
 #include <ImGuiFileDialog.h>
 #include <imgui_markdown.h>
-
+#include <imgui_console.h>
 
 static bool canValidateDialog = false;
 
-inline void InfosPane(std::string vFilter, igfd::UserDatas vUserDatas, bool *vCantContinue) // if vCantContinue is false, the user cant validate the dialog
+inline void InfosPane(std::string vFilter, igfd::UserDatas vUserDatas, bool* vCantContinue) // if vCantContinue is false, the user cant validate the dialog
 {
 	ImGui::TextColored(ImVec4(0, 1, 1, 1), "Infos Pane");
-	
+
 	ImGui::Text("Selected Filter : %s", vFilter.c_str());
 
 	const char* userDatas = (const char*)vUserDatas;
 	if (userDatas)
-        ImGui::Text("User Datas : %s", userDatas);
+		ImGui::Text("User Datas : %s", userDatas);
 
 	ImGui::Checkbox("if not checked you cant validate the dialog", &canValidateDialog);
 
 	if (vCantContinue)
-	    *vCantContinue = canValidateDialog;
+		*vCantContinue = canValidateDialog;
 }
 
-void LinkCallback( ImGui::MarkdownLinkCallbackData data_ );
-inline ImGui::MarkdownImageData ImageCallback( ImGui::MarkdownLinkCallbackData data_ );
+void LinkCallback(ImGui::MarkdownLinkCallbackData data_);
+inline ImGui::MarkdownImageData ImageCallback(ImGui::MarkdownLinkCallbackData data_);
 
 // Main code
 int main(int, char**)
 {
-    if (imgui_app_fw::select_platform(imgui_app_fw::platform::win32_dx12))
-    {
-	    if (imgui_app_fw::init())
-        {
-            auto plotContext = ImPlot::CreateContext();
-            imnodes::Initialize();
+	if (imgui_app_fw::select_platform(imgui_app_fw::platform::win32_dx12))
+	{
+		if (imgui_app_fw::init())
+		{
+			ImGuiConsole console;
 
-            // Our state
-            bool show_demo_window = true;
-            bool show_plot_demo_window = true;
-            bool show_another_window = false;
-            ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+			// Log example information:
+			console.System().Log(csys::ItemType::INFO) << "Welcome to the imgui-console example!" << csys::endl;
+			console.System().Log(csys::ItemType::INFO) << "The following variables have been exposed to the console:" << csys::endl << csys::endl;
+			console.System().Log(csys::ItemType::INFO) << "\tbackground_color - set: [int int int int]" << csys::endl;
+			console.System().Log(csys::ItemType::INFO) << csys::endl << "Try running the following command:" << csys::endl;
+			console.System().Log(csys::ItemType::INFO) << "\tset background_color [255 0 0 255]" << csys::endl << csys::endl;
 
-	        TextEditor editor;
-	        auto lang = TextEditor::LanguageDefinition::CPlusPlus();
 
-	        // set your own known preprocessor symbols...
-	        static const char* ppnames[] = { "NULL", "PM_REMOVE",
-		        "ZeroMemory", "DXGI_SWAP_EFFECT_DISCARD", "D3D_FEATURE_LEVEL", "D3D_DRIVER_TYPE_HARDWARE", "WINAPI","D3D11_SDK_VERSION", "assert" };
-	        // ... and their corresponding values
-	        static const char* ppvalues[] = { 
-		        "#define NULL ((void*)0)", 
-		        "#define PM_REMOVE (0x0001)",
-		        "Microsoft's own memory zapper function\n(which is a macro actually)\nvoid ZeroMemory(\n\t[in] PVOID  Destination,\n\t[in] SIZE_T Length\n); ", 
-		        "enum DXGI_SWAP_EFFECT::DXGI_SWAP_EFFECT_DISCARD = 0", 
-		        "enum D3D_FEATURE_LEVEL", 
-		        "enum D3D_DRIVER_TYPE::D3D_DRIVER_TYPE_HARDWARE  = ( D3D_DRIVER_TYPE_UNKNOWN + 1 )",
-		        "#define WINAPI __stdcall",
-		        "#define D3D11_SDK_VERSION (7)",
-		        " #define assert(expression) (void)(                                                  \n"
-                "    (!!(expression)) ||                                                              \n"
-                "    (_wassert(_CRT_WIDE(#expression), _CRT_WIDE(__FILE__), (unsigned)(__LINE__)), 0) \n"
-                " )"
-		        };
+			auto plotContext = ImPlot::CreateContext();
+			imnodes::Initialize();
 
-	        for (int i = 0; i < sizeof(ppnames) / sizeof(ppnames[0]); ++i)
-	        {
-		        TextEditor::Identifier id;
-		        id.mDeclaration = ppvalues[i];
-		        lang.mPreprocIdentifiers.insert(std::make_pair(std::string(ppnames[i]), id));
-	        }
+			// Our state
+			bool show_demo_window = true;
+			bool show_plot_demo_window = true;
+			bool show_another_window = false;
+			ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
-	        // set your own identifiers
-	        static const char* identifiers[] = {
-		        "HWND", "HRESULT", "LPRESULT","D3D11_RENDER_TARGET_VIEW_DESC", "DXGI_SWAP_CHAIN_DESC","MSG","LRESULT","WPARAM", "LPARAM","UINT","LPVOID",
-		        "ID3D11Device", "ID3D11DeviceContext", "ID3D11Buffer", "ID3D11Buffer", "ID3D10Blob", "ID3D11VertexShader", "ID3D11InputLayout", "ID3D11Buffer",
-		        "ID3D10Blob", "ID3D11PixelShader", "ID3D11SamplerState", "ID3D11ShaderResourceView", "ID3D11RasterizerState", "ID3D11BlendState", "ID3D11DepthStencilState",
-		        "IDXGISwapChain", "ID3D11RenderTargetView", "ID3D11Texture2D", "TextEditor" };
-	        static const char* idecls[] = 
-	        {
-		        "typedef HWND_* HWND", "typedef long HRESULT", "typedef long* LPRESULT", "struct D3D11_RENDER_TARGET_VIEW_DESC", "struct DXGI_SWAP_CHAIN_DESC",
-		        "typedef tagMSG MSG\n * Message structure","typedef LONG_PTR LRESULT","WPARAM", "LPARAM","UINT","LPVOID",
-		        "ID3D11Device", "ID3D11DeviceContext", "ID3D11Buffer", "ID3D11Buffer", "ID3D10Blob", "ID3D11VertexShader", "ID3D11InputLayout", "ID3D11Buffer",
-		        "ID3D10Blob", "ID3D11PixelShader", "ID3D11SamplerState", "ID3D11ShaderResourceView", "ID3D11RasterizerState", "ID3D11BlendState", "ID3D11DepthStencilState",
-		        "IDXGISwapChain", "ID3D11RenderTargetView", "ID3D11Texture2D", "class TextEditor" };
-	        for (int i = 0; i < sizeof(identifiers) / sizeof(identifiers[0]); ++i)
-	        {
-		        TextEditor::Identifier id;
-		        id.mDeclaration = std::string(idecls[i]);
-		        lang.mIdentifiers.insert(std::make_pair(std::string(identifiers[i]), id));
-	        }
-	        editor.SetLanguageDefinition(lang);
-	        //editor.SetPalette(TextEditor::GetLightPalette());
+			TextEditor editor;
+			auto lang = TextEditor::LanguageDefinition::CPlusPlus();
 
-	        // error markers
-	        TextEditor::ErrorMarkers markers;
-	        markers.insert(std::make_pair<int, std::string>(6, "Example error here:\nInclude file not found: \"TextEditor.h\""));
-	        markers.insert(std::make_pair<int, std::string>(41, "Another example error"));
-	        editor.SetErrorMarkers(markers);
+			// set your own known preprocessor symbols...
+			static const char* ppnames[] = { "NULL", "PM_REMOVE",
+				"ZeroMemory", "DXGI_SWAP_EFFECT_DISCARD", "D3D_FEATURE_LEVEL", "D3D_DRIVER_TYPE_HARDWARE", "WINAPI","D3D11_SDK_VERSION", "assert" };
+			// ... and their corresponding values
+			static const char* ppvalues[] = {
+				"#define NULL ((void*)0)",
+				"#define PM_REMOVE (0x0001)",
+				"Microsoft's own memory zapper function\n(which is a macro actually)\nvoid ZeroMemory(\n\t[in] PVOID  Destination,\n\t[in] SIZE_T Length\n); ",
+				"enum DXGI_SWAP_EFFECT::DXGI_SWAP_EFFECT_DISCARD = 0",
+				"enum D3D_FEATURE_LEVEL",
+				"enum D3D_DRIVER_TYPE::D3D_DRIVER_TYPE_HARDWARE  = ( D3D_DRIVER_TYPE_UNKNOWN + 1 )",
+				"#define WINAPI __stdcall",
+				"#define D3D11_SDK_VERSION (7)",
+				" #define assert(expression) (void)(                                                  \n"
+				"    (!!(expression)) ||                                                              \n"
+				"    (_wassert(_CRT_WIDE(#expression), _CRT_WIDE(__FILE__), (unsigned)(__LINE__)), 0) \n"
+				" )"
+			};
 
-	        // "breakpoint" markers
-	        //TextEditor::Breakpoints bpts;
-	        //bpts.insert(24);
-	        //bpts.insert(47);
-	        //editor.SetBreakpoints(bpts);
+			for (int i = 0; i < sizeof(ppnames) / sizeof(ppnames[0]); ++i)
+			{
+				TextEditor::Identifier id;
+				id.mDeclaration = ppvalues[i];
+				lang.mPreprocIdentifiers.insert(std::make_pair(std::string(ppnames[i]), id));
+			}
 
-	        static const char* fileToEdit = "ImGuiColorTextEdit/TextEditor.cpp";
-        //	static const char* fileToEdit = "test.cpp";
+			// set your own identifiers
+			static const char* identifiers[] = {
+				"HWND", "HRESULT", "LPRESULT","D3D11_RENDER_TARGET_VIEW_DESC", "DXGI_SWAP_CHAIN_DESC","MSG","LRESULT","WPARAM", "LPARAM","UINT","LPVOID",
+				"ID3D11Device", "ID3D11DeviceContext", "ID3D11Buffer", "ID3D11Buffer", "ID3D10Blob", "ID3D11VertexShader", "ID3D11InputLayout", "ID3D11Buffer",
+				"ID3D10Blob", "ID3D11PixelShader", "ID3D11SamplerState", "ID3D11ShaderResourceView", "ID3D11RasterizerState", "ID3D11BlendState", "ID3D11DepthStencilState",
+				"IDXGISwapChain", "ID3D11RenderTargetView", "ID3D11Texture2D", "TextEditor" };
+			static const char* idecls[] =
+			{
+				"typedef HWND_* HWND", "typedef long HRESULT", "typedef long* LPRESULT", "struct D3D11_RENDER_TARGET_VIEW_DESC", "struct DXGI_SWAP_CHAIN_DESC",
+				"typedef tagMSG MSG\n * Message structure","typedef LONG_PTR LRESULT","WPARAM", "LPARAM","UINT","LPVOID",
+				"ID3D11Device", "ID3D11DeviceContext", "ID3D11Buffer", "ID3D11Buffer", "ID3D10Blob", "ID3D11VertexShader", "ID3D11InputLayout", "ID3D11Buffer",
+				"ID3D10Blob", "ID3D11PixelShader", "ID3D11SamplerState", "ID3D11ShaderResourceView", "ID3D11RasterizerState", "ID3D11BlendState", "ID3D11DepthStencilState",
+				"IDXGISwapChain", "ID3D11RenderTargetView", "ID3D11Texture2D", "class TextEditor" };
+			for (int i = 0; i < sizeof(identifiers) / sizeof(identifiers[0]); ++i)
+			{
+				TextEditor::Identifier id;
+				id.mDeclaration = std::string(idecls[i]);
+				lang.mIdentifiers.insert(std::make_pair(std::string(identifiers[i]), id));
+			}
+			editor.SetLanguageDefinition(lang);
+			//editor.SetPalette(TextEditor::GetLightPalette());
+
+			// error markers
+			TextEditor::ErrorMarkers markers;
+			markers.insert(std::make_pair<int, std::string>(6, "Example error here:\nInclude file not found: \"TextEditor.h\""));
+			markers.insert(std::make_pair<int, std::string>(41, "Another example error"));
+			editor.SetErrorMarkers(markers);
+
+			// "breakpoint" markers
+			//TextEditor::Breakpoints bpts;
+			//bpts.insert(24);
+			//bpts.insert(47);
+			//editor.SetBreakpoints(bpts);
+
+			static const char* fileToEdit = "ImGuiColorTextEdit/TextEditor.cpp";
+			//	static const char* fileToEdit = "test.cpp";
 
 			igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".cpp", ImVec4(1.0f, 1.0f, 0.0f, 0.9f));
 			igfd::ImGuiFileDialog::Instance()->SetExtentionInfos(".h", ImVec4(0.0f, 1.0f, 0.0f, 0.9f));
@@ -128,17 +138,17 @@ int main(int, char**)
 			}
 #endif
 
-			ImGui::MarkdownConfig mdConfig; 
-			mdConfig.linkCallback =         LinkCallback;
-			mdConfig.tooltipCallback =      NULL;
-			mdConfig.imageCallback =        ImageCallback;
+			ImGui::MarkdownConfig mdConfig;
+			mdConfig.linkCallback = LinkCallback;
+			mdConfig.tooltipCallback = NULL;
+			mdConfig.imageCallback = ImageCallback;
 			//mdConfig.linkIcon =             ICON_FA_LINK;
 			//mdConfig.headingFormats[0] =    { H1, true };
 			//mdConfig.headingFormats[1] =    { H2, true };
 			//mdConfig.headingFormats[2] =    { H3, false };
-			mdConfig.userData =             NULL;
+			mdConfig.userData = NULL;
 
-		    const std::string markdownText = u8R"(# H1 Header: Text and Links
+			const std::string markdownText = (const char*)u8R"(# H1 Header: Text and Links
 You can add [links like this one to enkisoftware](https://www.enkisoftware.com/) and lines will wrap well.
 ## H2 Header: indented text.
   This text has an indent (two leading spaces).
@@ -150,80 +160,82 @@ You can add [links like this one to enkisoftware](https://www.enkisoftware.com/)
 )";
 
 			while (imgui_app_fw::pump())
-            {
-		        imgui_app_fw::begin_frame();
+			{
+				imgui_app_fw::begin_frame();
 
-                ImPlot::SetCurrentContext(plotContext);
-		
-                // 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
-                if (show_demo_window)
-                    ImGui::ShowDemoWindow(&show_demo_window);
+				console.Draw();
 
-                // 2. Show a simple window that we create ourselves. We use a Begin/End pair to created a named window.
-                {
-                    static float f = 0.0f;
-                    static int counter = 0;
+#if 0
+				ImPlot::SetCurrentContext(plotContext);
+				// 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
+				if (show_demo_window)
+					ImGui::ShowDemoWindow(&show_demo_window);
 
-                    ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
+				// 2. Show a simple window that we create ourselves. We use a Begin/End pair to created a named window.
+				{
+					static float f = 0.0f;
+					static int counter = 0;
 
-                    ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
-                    ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
-                    ImGui::Checkbox("Another Window", &show_another_window);
+					ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
 
-                    ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
-                    ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
+					ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
+					ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
+					ImGui::Checkbox("Another Window", &show_another_window);
 
-                    if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
-                        counter++;
-                    ImGui::SameLine();
-                    ImGui::Text("counter = %d", counter);
+					ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
+					ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
 
-                    ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-                    
-					ImGui::Markdown( markdownText.c_str(), markdownText.length(), mdConfig );
-	
+					if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
+						counter++;
+					ImGui::SameLine();
+					ImGui::Text("counter = %d", counter);
+
+					ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+
+					ImGui::Markdown(markdownText.c_str(), markdownText.length(), mdConfig);
+
 					ImGui::End();
-                }
+				}
 
-                // 3. Show another simple window.
-                if (show_another_window)
-                {
-                    ImGui::Begin("Another Window", &show_another_window);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
-                    ImGui::Text("Hello from another window!");
-                    
-                    if (ImGui::Button("Close Me"))
-                        show_another_window = false;
-                    
-                        imnodes::BeginNodeEditor();
-                        imnodes::BeginNode(1);
+				// 3. Show another simple window.
+				if (show_another_window)
+				{
+					ImGui::Begin("Another Window", &show_another_window);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
+					ImGui::Text("Hello from another window!");
 
-                        imnodes::BeginNodeTitleBar();
-                        ImGui::TextUnformatted("simple node :)");
-                        imnodes::EndNodeTitleBar();
+					if (ImGui::Button("Close Me"))
+						show_another_window = false;
 
-                        imnodes::BeginInputAttribute(2);
-                        ImGui::Text("input");
-                        imnodes::EndInputAttribute();
+					imnodes::BeginNodeEditor();
+					imnodes::BeginNode(1);
 
-                        imnodes::BeginOutputAttribute(3);
-                        ImGui::Indent(40);
-                        ImGui::Text("output");
-                        imnodes::EndOutputAttribute();
+					imnodes::BeginNodeTitleBar();
+					ImGui::TextUnformatted("simple node :)");
+					imnodes::EndNodeTitleBar();
 
-                        imnodes::EndNode();
-                        imnodes::EndNodeEditor();
+					imnodes::BeginInputAttribute(2);
+					ImGui::Text("input");
+					imnodes::EndInputAttribute();
 
-                    ImGui::End();
-                }
+					imnodes::BeginOutputAttribute(3);
+					ImGui::Indent(40);
+					ImGui::Text("output");
+					imnodes::EndOutputAttribute();
 
-                if (show_plot_demo_window)
-                    ImPlot::ShowDemoWindow(&show_plot_demo_window);
-		         
+					imnodes::EndNode();
+					imnodes::EndNodeEditor();
+
+					ImGui::End();
+				}
+
+				if (show_plot_demo_window)
+					ImPlot::ShowDemoWindow(&show_plot_demo_window);
+
 				{
 					ImGui::Text("imGuiFileDialog Demo %s : ", IMGUIFILEDIALOG_VERSION);
 					ImGui::Indent();
 					{
-		#ifdef USE_EXPLORATION_BY_KEYS
+#ifdef USE_EXPLORATION_BY_KEYS
 						static float flashingAttenuationInSeconds = 1.0f;
 						if (ImGui::Button("R##resetflashlifetime"))
 						{
@@ -235,29 +247,29 @@ You can add [links like this one to enkisoftware](https://www.enkisoftware.com/)
 						if (ImGui::SliderFloat("Flash lifetime (s)", &flashingAttenuationInSeconds, 0.01f, 5.0f))
 							igfd::ImGuiFileDialog::Instance()->SetFlashingAttenuationInSeconds(flashingAttenuationInSeconds);
 						ImGui::PopItemWidth();
-		#endif
+#endif
 						ImGui::Separator();
 						ImGui::Text("Constraints is used here for define min/ax fiel dialog size");
 						ImGui::Separator();
 						static bool standardDialogMode = true;
 						ImGui::Text("Open Mode : ");
 						ImGui::SameLine();
-						
+
 						standardDialogMode = true;
 
 						if (ImGui::Button("Open File Dialog"))
 						{
-							const char *filters = ".*,.cpp,.h,.hpp";
+							const char* filters = ".*,.cpp,.h,.hpp";
 							if (standardDialogMode)
-								igfd::ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", 
+								igfd::ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey",
 									"Choose a File", filters, ".");
 							else
-								igfd::ImGuiFileDialog::Instance()->OpenModal("ChooseFileDlgKey", 
+								igfd::ImGuiFileDialog::Instance()->OpenModal("ChooseFileDlgKey",
 									"Choose a File", filters, ".");
 						}
 						if (ImGui::Button("Open File Dialog with collections of filters"))
 						{
-							const char *filters = "Source files (*.cpp *.h *.hpp){.cpp,.h,.hpp},Image files (*.png *.gif *.jpg *.jpeg){.png,.gif,.jpg,.jpeg},.md";
+							const char* filters = "Source files (*.cpp *.h *.hpp){.cpp,.h,.hpp},Image files (*.png *.gif *.jpg *.jpeg){.png,.gif,.jpg,.jpeg},.md";
 							if (standardDialogMode)
 								igfd::ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey",
 									"Choose a File", filters, ".");
@@ -267,7 +279,7 @@ You can add [links like this one to enkisoftware](https://www.enkisoftware.com/)
 						}
 						if (ImGui::Button("Open File Dialog with selection of 5 items"))
 						{
-							const char *filters = ".*,.cpp,.h,.hpp";
+							const char* filters = ".*,.cpp,.h,.hpp";
 							if (standardDialogMode)
 								igfd::ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey",
 									"Choose a File", filters, ".", 5);
@@ -277,7 +289,7 @@ You can add [links like this one to enkisoftware](https://www.enkisoftware.com/)
 						}
 						if (ImGui::Button("Open File Dialog with infinite selection"))
 						{
-							const char *filters = ".*,.cpp,.h,.hpp";
+							const char* filters = ".*,.cpp,.h,.hpp";
 							if (standardDialogMode)
 								igfd::ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey",
 									"Choose a File", filters, ".", 0);
@@ -287,12 +299,12 @@ You can add [links like this one to enkisoftware](https://www.enkisoftware.com/)
 						}
 						if (ImGui::Button("Save File Dialog with a custom pane"))
 						{
-							const char *filters = "C++ File (*.cpp){.cpp}";
+							const char* filters = "C++ File (*.cpp){.cpp}";
 							if (standardDialogMode)
 								igfd::ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey",
 									"Choose a File", filters,
-									".", "", std::bind(&InfosPane, std::placeholders::_1, std::placeholders::_2, 
-									std::placeholders::_3), 350, 1, igfd::UserDatas("SaveFile"));
+									".", "", std::bind(&InfosPane, std::placeholders::_1, std::placeholders::_2,
+										std::placeholders::_3), 350, 1, igfd::UserDatas("SaveFile"));
 							else
 								igfd::ImGuiFileDialog::Instance()->OpenModal("ChooseFileDlgKey",
 									"Choose a File", filters,
@@ -304,7 +316,7 @@ You can add [links like this one to enkisoftware](https://www.enkisoftware.com/)
 							// set filters to 0 for open directory chooser
 							if (standardDialogMode)
 								igfd::ImGuiFileDialog::Instance()->OpenDialog("ChooseDirDlgKey",
-								"Choose a Directory", 0, ".");
+									"Choose a Directory", 0, ".");
 							else
 								igfd::ImGuiFileDialog::Instance()->OpenModal("ChooseDirDlgKey",
 									"Choose a Directory", 0, ".");
@@ -326,7 +338,7 @@ You can add [links like this one to enkisoftware](https://www.enkisoftware.com/)
 						// maxSize => FLT_MAX, FLT_MAX (defined is float.h)
 
 						if (igfd::ImGuiFileDialog::Instance()->FileDialog("ChooseFileDlgKey",
-								ImGuiWindowFlags_NoCollapse))
+							ImGuiWindowFlags_NoCollapse))
 						{
 							if (igfd::ImGuiFileDialog::Instance()->IsOk)
 							{
@@ -345,7 +357,7 @@ You can add [links like this one to enkisoftware](https://www.enkisoftware.com/)
 						}
 
 						if (igfd::ImGuiFileDialog::Instance()->FileDialog("ChooseDirDlgKey",
-								ImGuiWindowFlags_NoCollapse))
+							ImGuiWindowFlags_NoCollapse))
 						{
 							if (igfd::ImGuiFileDialog::Instance()->IsOk)
 							{
@@ -365,7 +377,7 @@ You can add [links like this one to enkisoftware](https://www.enkisoftware.com/)
 					}
 					ImGui::Unindent();
 				}
-				
+
 				{
 					auto cpos = editor.GetCursorPosition();
 					ImGui::Begin("Text Editor Demo", nullptr, ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_MenuBar);
@@ -425,7 +437,7 @@ You can add [links like this one to enkisoftware](https://www.enkisoftware.com/)
 							ImGui::EndMenu();
 						}
 						ImGui::EndMenuBar();
-					}
+		}
 
 					ImGui::Text("%6d/%-6d %6d lines  | %s | %s | %s | %s", cpos.mLine + 1, cpos.mColumn + 1, editor.GetTotalLines(),
 						editor.IsOverwrite() ? "Ovr" : "Ins",
@@ -434,18 +446,18 @@ You can add [links like this one to enkisoftware](https://www.enkisoftware.com/)
 
 					editor.Render("TextEditor");
 					ImGui::End();
-				}
+	}
+#endif
+				imgui_app_fw::end_frame(clear_color);
+}
 
-                imgui_app_fw::end_frame(clear_color);
-            }
+			imnodes::Shutdown();
+			ImPlot::DestroyContext(plotContext);
+			imgui_app_fw::destroy();
+		}
+	}
 
-            imnodes::Shutdown();
-            ImPlot::DestroyContext(plotContext);
-	        imgui_app_fw::destroy();
-        }
-    }
-
-    return 0;
+	return 0;
 }
 
 #define WIN32_LEAN_AND_MEAN
@@ -453,24 +465,24 @@ You can add [links like this one to enkisoftware](https://www.enkisoftware.com/)
 #include <Shellapi.h>
 #include <string>
 
-void LinkCallback( ImGui::MarkdownLinkCallbackData data_ )
+void LinkCallback(ImGui::MarkdownLinkCallbackData data_)
 {
-    std::string url( data_.link, data_.linkLength );
-    if( !data_.isImage )
-    {
-        ShellExecuteA( NULL, "open", url.c_str(), NULL, NULL, SW_SHOWNORMAL );
-    }
+	std::string url(data_.link, data_.linkLength);
+	if (!data_.isImage)
+	{
+		ShellExecuteA(NULL, "open", url.c_str(), NULL, NULL, SW_SHOWNORMAL);
+	}
 }
 
-inline ImGui::MarkdownImageData ImageCallback( ImGui::MarkdownLinkCallbackData data_ )
+inline ImGui::MarkdownImageData ImageCallback(ImGui::MarkdownLinkCallbackData data_)
 {
-    // In your application you would load an image based on data_ input. Here we just use the imgui font texture.
-    ImTextureID image = ImGui::GetIO().Fonts->TexID;
-    // > C++14 can use ImGui::MarkdownImageData imageData{ true, false, image, ImVec2( 40.0f, 20.0f ) };
-    ImGui::MarkdownImageData imageData;
-    imageData.isValid =         true;
-    imageData.useLinkCallback = false;
-    imageData.user_texture_id = image;
-    imageData.size =            ImVec2( 40.0f, 20.0f );
-    return imageData;
+	// In your application you would load an image based on data_ input. Here we just use the imgui font texture.
+	ImTextureID image = ImGui::GetIO().Fonts->TexID;
+	// > C++14 can use ImGui::MarkdownImageData imageData{ true, false, image, ImVec2( 40.0f, 20.0f ) };
+	ImGui::MarkdownImageData imageData;
+	imageData.isValid = true;
+	imageData.useLinkCallback = false;
+	imageData.user_texture_id = image;
+	imageData.size = ImVec2(40.0f, 20.0f);
+	return imageData;
 }

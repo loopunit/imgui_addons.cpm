@@ -119,6 +119,31 @@ file(GLOB imnodes_source
 #############
 
 CPMAddPackage(
+	NAME imgui_console
+	GITHUB_REPOSITORY rmxbalanque/imgui-console
+	GIT_TAG a9a1f83b016c3b455f2b88361aa2b79f25f3f961
+	DOWNLOAD_ONLY true)
+	
+
+if (NOT imgui_console_ADDED)
+	message( FATAL_ERROR "Could not find imgui_console" )
+endif()
+
+file(GLOB imgui_console_public_headers 
+	"${imgui_console_SOURCE_DIR}/include/imgui_console/imgui_console.h"
+)
+
+file(GLOB imgui_console_public_headers_csys
+	"${imgui_console_SOURCE_DIR}/include/csys/*.*"
+)
+
+file(GLOB imgui_console_source
+	"${imgui_console_SOURCE_DIR}/src/imgui_console.cpp"
+)
+
+#############
+
+CPMAddPackage(
 	NAME ImGuiFileDialog
 	GITHUB_REPOSITORY aiekick/ImGuiFileDialog
 	GIT_TAG 27cf103c3be5fe11084a07c902c4c180d4e0fff6
@@ -138,21 +163,6 @@ file(GLOB ImGuiFileDialog_source
 
 #############
 
-CPMAddPackage(
-	NAME ImTerm
-	GITHUB_REPOSITORY Organic-Code/ImTerm
-	GIT_TAG d07f95a6f0b6925b8ab3952856d3b46cdf3c8141
-	DOWNLOAD_ONLY true)
-
-if (NOT ImTerm_ADDED)
-	message( FATAL_ERROR "Could not find ImTerm" )
-endif()
-
-file(GLOB ImTerm_public_headers 
-	"${ImTerm_SOURCE_DIR}/include/imterm/*.*")
-
-#############
-
 set(STAGING_ROOT ${CMAKE_CURRENT_BINARY_DIR}/imgui_addons_staging)
 
 file(COPY 
@@ -161,28 +171,38 @@ file(COPY
 	${imgui_markdown_public_headers}
 	${imnodes_public_headers}
 	${ImGuiFileDialog_public_headers} 
-	${ImTerm_public_headers}
+	${imgui_console_public_headers}
 	DESTINATION ${STAGING_ROOT}/include)
 
 file(COPY 
-	${CMAKE_CURRENT_LIST_DIR}/format.h
-	DESTINATION ${STAGING_ROOT}/include/fmt)
+	${ImTerm_public_headers}
+	DESTINATION ${STAGING_ROOT}/include/ImTerm)
+
+file(COPY 
+	${imgui_console_public_headers_csys}
+	DESTINATION ${STAGING_ROOT}/include/csys)
+
 
 file(COPY 
 	${implot_source}
 	${ImGuiColorTextEdit_source}
 	${imnodes_source}
 	${ImGuiFileDialog_source}
+	${imgui_console_source}
 	DESTINATION ${STAGING_ROOT}/src)
 
 file(GLOB sources ${STAGING_ROOT}/src/*.*)
 
 add_library(imgui_addons STATIC ${sources})
 
+set_target_properties(imgui_addons PROPERTIES CXX_STANDARD 20)
+
 target_link_libraries(imgui_addons PRIVATE imgui)
 
 target_include_directories(imgui_addons PUBLIC $<BUILD_INTERFACE:${STAGING_ROOT}/include>
                  $<INSTALL_INTERFACE:imgui_addons-${PROJECT_VERSION}>)
+
+target_compile_definitions(imgui_addons PUBLIC SPDLOG_COMPILED_LIB SPDLOG_FMT_EXTERNAL)
 
 packageProject(
   # the name of the target to export
@@ -208,7 +228,7 @@ if(IMGUI_BUILD_ADDON_EXAMPLES)
     add_executable(imgui_addons_example
         ${example_sources})
     
-	set_target_properties(imgui_addons_example PROPERTIES CXX_STANDARD 17)
+	set_target_properties(imgui_addons_example PROPERTIES CXX_STANDARD 20)
 
     target_include_directories(imgui_addons_example
         PRIVATE 

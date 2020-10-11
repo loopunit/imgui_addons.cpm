@@ -1,1 +1,0 @@
-#include <spdlog/fmt/bundled/format.h>
