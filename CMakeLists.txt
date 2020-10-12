@@ -99,21 +99,22 @@ file(GLOB imgui_markdown_public_headers
 #############
 
 CPMAddPackage(
-	NAME imnodes
-	GITHUB_REPOSITORY Nelarius/imnodes
-	GIT_TAG 8ecdd397860e083659347dae310e07dc6f9797d5
+	NAME imgui_node_editor
+	GITHUB_REPOSITORY thedmd/imgui-node-editor
+	GIT_TAG 687a72f940c76cf5064e13fe55fa0408c18fcbe4
 	DOWNLOAD_ONLY true)
 
-if (NOT imnodes_ADDED)
-	message( FATAL_ERROR "Could not find imnodes" )
+if (NOT imgui_node_editor_ADDED)
+	message( FATAL_ERROR "Could not find imgui_node_editor" )
 endif()
 
-file(GLOB imnodes_public_headers 
-	"${imnodes_SOURCE_DIR}/imnodes.h"
+file(GLOB imgui_node_editor_public_headers 
+	"${imgui_node_editor_SOURCE_DIR}/*.h"
+	"${imgui_node_editor_SOURCE_DIR}/*.inl"
 )
 
-file(GLOB imnodes_source
-	"${imnodes_SOURCE_DIR}/*.cpp"
+file(GLOB imgui_node_editor_source
+	"${imgui_node_editor_SOURCE_DIR}/*.cpp"
 )
 
 #############
@@ -169,7 +170,7 @@ file(COPY
 	${implot_public_headers}
 	${ImGuiColorTextEdit_public_headers}
 	${imgui_markdown_public_headers}
-	${imnodes_public_headers}
+	${imgui_node_editor_public_headers}
 	${ImGuiFileDialog_public_headers} 
 	${imgui_console_public_headers}
 	DESTINATION ${STAGING_ROOT}/include)
@@ -186,7 +187,7 @@ file(COPY
 file(COPY 
 	${implot_source}
 	${ImGuiColorTextEdit_source}
-	${imnodes_source}
+	${imgui_node_editor_source}
 	${ImGuiFileDialog_source}
 	${imgui_console_source}
 	DESTINATION ${STAGING_ROOT}/src)

@@ -1,10 +1,10 @@
 #include <imgui_app_fw.h>
 #include <implot.h>
-#include <imnodes.h>
 #include <TextEditor.h>
 #include <ImGuiFileDialog.h>
 #include <imgui_markdown.h>
 #include <imgui_console.h>
+#include <imgui_node_editor.h>
 
 static bool canValidateDialog = false;
 
@@ -45,7 +45,12 @@ int main(int, char**)
 
 
 			auto plotContext = ImPlot::CreateContext();
-			imnodes::Initialize();
+
+			namespace ed = ax::NodeEditor;
+			static ed::EditorContext* g_Context = nullptr;
+			ed::Config config;
+			config.SettingsFile = "Simple.json";
+			g_Context = ed::CreateEditor(&config);
 
 			// Our state
 			bool show_demo_window = true;
@@ -135,7 +140,7 @@ int main(int, char**)
 				strStream << docFile.rdbuf();//read the file
 				igfd::ImGuiFileDialog::Instance()->DeserializeBookmarks(strStream.str());
 				docFile.close();
-			}
+		}
 #endif
 
 			ImGui::MarkdownConfig mdConfig;
@@ -164,6 +169,23 @@ You can add [links like this one to enkisoftware](https://www.enkisoftware.com/)
 				imgui_app_fw::begin_frame();
 
 				console.Draw();
+
+				ed::SetCurrentEditor(g_Context);
+				ed::Begin("My Editor", ImVec2(0.0, 0.0f));
+				int uniqueId = 1;
+				// Start drawing nodes.
+				ed::BeginNode(uniqueId++);
+					ImGui::Text("Node A");
+					ed::BeginPin(uniqueId++, ed::PinKind::Input);
+						ImGui::Text("-> In");
+					ed::EndPin();
+					ImGui::SameLine();
+					ed::BeginPin(uniqueId++, ed::PinKind::Output);
+						ImGui::Text("Out ->");
+					ed::EndPin();
+				ed::EndNode();
+				ed::End();
+				ed::SetCurrentEditor(nullptr);
 
 #if 0
 				ImPlot::SetCurrentContext(plotContext);
@@ -437,7 +459,7 @@ You can add [links like this one to enkisoftware](https://www.enkisoftware.com/)
 							ImGui::EndMenu();
 						}
 						ImGui::EndMenuBar();
-		}
+					}
 
 					ImGui::Text("%6d/%-6d %6d lines  | %s | %s | %s | %s", cpos.mLine + 1, cpos.mColumn + 1, editor.GetTotalLines(),
 						editor.IsOverwrite() ? "Ovr" : "Ins",
@@ -446,12 +468,13 @@ You can add [links like this one to enkisoftware](https://www.enkisoftware.com/)
 
 					editor.Render("TextEditor");
 					ImGui::End();
-	}
+				}
 #endif
 				imgui_app_fw::end_frame(clear_color);
-}
+			}
 
-			imnodes::Shutdown();
+			ed::DestroyEditor(g_Context);
+			g_Context = nullptr;
 			ImPlot::DestroyContext(plotContext);
 			imgui_app_fw::destroy();
 		}
