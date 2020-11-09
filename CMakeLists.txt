@@ -27,7 +27,7 @@ CPMAddPackage(
 CPMAddPackage(
 	NAME imgui_cpm
 	GITHUB_REPOSITORY loopunit/imgui.cpm
-	GIT_TAG a504bdb74c171b1e5230343f8d2036d6a95020e7
+	GIT_TAG efdddb204b2bca135c3e06b49c7b5bb50b15f234
 	OPTIONS
 		"IMGUI_BUILD_EXAMPLES ${IMGUI_BUILD_EXAMPLES}"
 		"IMGUI_BUILD_APP_FW ${IMGUI_BUILD_APP_FW}"
@@ -44,7 +44,7 @@ endif()
 CPMAddPackage(
 	NAME implot
 	GITHUB_REPOSITORY epezent/implot
-	GIT_TAG 90cbb561f06be0634228a4030efae5fe850562ca
+	GIT_TAG 862b8c44ea6d62d736e320b7a11be8438ecbac5d
 	DOWNLOAD_ONLY true)
 
 if (NOT implot_ADDED)
@@ -85,7 +85,7 @@ file(GLOB ImGuiColorTextEdit_source
 CPMAddPackage(
 	NAME imgui_markdown
 	GITHUB_REPOSITORY juliettef/imgui_markdown
-	GIT_TAG 9cd1d889a7940a1339044ef18889b5c4e29aba5d
+	GIT_TAG 2b33c435b4463999438a5532f1dc201c142a2aab
 	DOWNLOAD_ONLY true)
 
 if (NOT imgui_markdown_ADDED)
